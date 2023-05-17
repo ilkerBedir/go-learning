@@ -1,0 +1,20 @@
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: postgres.dockerfile
+    image: "postgres"
+    container_name: pg-container
+    environment:
+      POSTGRES_DB: golang
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: 12345
+      PGDATA: /data/pg-container
+    volumes:
+       - dbtuto:/data/pg-container
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+volumes:
+    dbtuto:
+      external: true

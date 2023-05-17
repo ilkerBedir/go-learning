@@ -7,7 +7,13 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"net/http"
+	"github.com/ilkerBedir/go-learning/internal/database"
+	"database/sql"
+	_ "github.com/lib/pq"
 )
+type apiConfig struct {
+	DB *database.Queries
+}
 func main()  {
 
 	godotenv.Load()
@@ -15,6 +21,17 @@ func main()  {
 	portString:=os.Getenv("PORT")
 	if portString=="" {
 		log.Fatal("PORT is not found in environment")
+	}
+	dbURL:=os.Getenv("DB_URL")
+	if dbURL=="" {
+		log.Fatal("DB_URL is not found in environment")
+	}
+	conn,err:=sql.Open("postgres",dbURL)
+	apiCnfg:=apiConfig{
+		DB: database.New(conn),
+	}
+	if(err != nil){
+		log.Fatal("Can't connect to database : ",err)
 	}
 	router:=chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
@@ -26,9 +43,9 @@ func main()  {
 		MaxAge: 300,
 	}))
 
-
 	router.Get("/healthz",handlerReadiness)
 	router.Get("/err",handlerError)
+	router.Post("/users",apiCnfg.handlerCreateUser)
 	router.Mount("/v1",router )
 	
 	srv:=&http.Server{
@@ -36,7 +53,7 @@ func main()  {
 		Addr: ":"+portString,
 	}
 	log.Printf("Server starting on port %v",portString)
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
 	}
