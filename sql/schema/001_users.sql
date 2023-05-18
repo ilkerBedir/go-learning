@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT NOT NULL
 );
 -- +goose Down
-DROP TABLE IF EXISTS users
+DROP TABLE IF EXISTS users ;
