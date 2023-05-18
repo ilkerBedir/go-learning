@@ -38,3 +38,13 @@ func (apiConfig apiConfig) handlerCreateFeed(w http.ResponseWriter,r *http.Reque
 	respondWithJson(w,201,databaseFeedToFeed(feed))
 }
 
+func (apiConfig apiConfig) handlerGetFeeds(w http.ResponseWriter,r *http.Request){
+	
+	feeds,err:=apiConfig.DB.Getfeeds(r.Context())
+	if err!= nil{
+		respondWithError(w,400,fmt.Sprintf("Couldnt create user:%v ",err))
+		return
+	}
+	respondWithJson(w,201,databaseFeedsToFeeds(feeds))
+}
+

@@ -47,7 +47,9 @@ func main()  {
 	router.Get("/err",handlerError)
 	router.Post("/users",apiCnfg.handlerCreateUser)
 	router.Get("/users",apiCnfg.middlewareAuth(apiCnfg.handlerGetUserByAPIKey))
-	router.Get("/feeds",apiCnfg.middlewareAuth(apiCnfg.handlerCreateFeed))
+	router.Post("/feeds",apiCnfg.middlewareAuth(apiCnfg.handlerCreateFeed))
+	router.Get("/feeds",(apiCnfg.handlerGetFeeds))
+	router.Post("/feed-follows",apiCnfg.middlewareAuth(apiCnfg.handlerCreateFeedFollow))
 	router.Mount("/v1",router )
 	
 	srv:=&http.Server{
