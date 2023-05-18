@@ -7,6 +7,7 @@ import (
 	"encoding/json"	
 	"time"
 	"github.com/ilkerBedir/go-learning/internal/database"
+	"github.com/ilkerBedir/go-learning/internal/auth"
 )
 
 
@@ -32,5 +33,18 @@ func (apiConfig apiConfig) handlerCreateUser(w http.ResponseWriter,r *http.Reque
 		respondWithError(w,400,fmt.Sprintf("Couldnt create user:%v ",err))
 		return
 	}
-	respondWithJson(w,200,databaseUserToUser(user))
+	respondWithJson(w,201,databaseUserToUser(user))
+}
+func (apiConfig apiConfig) handlerGetUserByAPIKey(w http.ResponseWriter,r *http.Request){
+	apikey,err:=auth.GetAPIKey(r.Header)
+	if err!= nil{
+		respondWithError(w,403,fmt.Sprintf("Error auth:%v ",err))
+		return
 	}
+	user,err:=apiConfig.DB.GetUserByAPIKey(r.Context(),apikey)
+	if err!= nil{
+		respondWithError(w,400,fmt.Sprintf("Couldnt get user:%v ",err))
+		return
+	}
+	respondWithJson(w,200,databaseUserToUser(user))
+}

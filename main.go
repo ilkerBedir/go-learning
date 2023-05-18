@@ -46,6 +46,7 @@ func main()  {
 	router.Get("/healthz",handlerReadiness)
 	router.Get("/err",handlerError)
 	router.Post("/users",apiCnfg.handlerCreateUser)
+	router.Get("/users",apiCnfg.handlerGetUserByAPIKey)
 	router.Mount("/v1",router )
 	
 	srv:=&http.Server{
