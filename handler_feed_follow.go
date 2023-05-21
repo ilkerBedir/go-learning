@@ -7,6 +7,7 @@ import (
 	"encoding/json"	
 	"time"
 	"github.com/ilkerBedir/go-learning/internal/database"
+	"github.com/go-chi/chi"
 )
 
 
@@ -34,6 +35,33 @@ func (apiConfig apiConfig) handlerCreateFeedFollow(w http.ResponseWriter,r *http
 		return
 	}
 	respondWithJson(w,201,databaseFeedFollowToFeedFollow(feed_follow))
+}
+func (cfg *apiConfig) handlerFeedFollowsGet(w http.ResponseWriter, r *http.Request, user database.User) {
+	feedFollows, err := cfg.DB.GetFeedFollowsForUser(r.Context(), user.ID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create feed follow")
+		return
+	}
+
+	respondWithJson(w, http.StatusOK, databaseFeedFollowsToFeedFollows(feedFollows))
+}
+func (cfg *apiConfig) handlerFeedFollowDelete(w http.ResponseWriter, r *http.Request, user database.User) {
+	feedFollowIDStr := chi.URLParam(r, "feedFollowID")
+	feedFollowID, err := uuid.Parse(feedFollowIDStr)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid feed follow ID")
+		return
+	}
+
+	err = cfg.DB.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
+		UserID: user.ID,
+		ID:     feedFollowID,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create feed follow")
+		return
+	}
+	respondWithJson(w, http.StatusOK, struct{}{})
 }
 
 

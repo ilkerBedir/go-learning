@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 	"log"
+	"time"
+
 	"github.com/joho/godotenv"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
@@ -27,8 +29,9 @@ func main()  {
 		log.Fatal("DB_URL is not found in environment")
 	}
 	conn,err:=sql.Open("postgres",dbURL)
+	dbQueries:=database.New(conn)
 	apiCnfg:=apiConfig{
-		DB: database.New(conn),
+		DB: dbQueries,
 	}
 	if(err != nil){
 		log.Fatal("Can't connect to database : ",err)
@@ -49,13 +52,20 @@ func main()  {
 	router.Get("/users",apiCnfg.middlewareAuth(apiCnfg.handlerGetUserByAPIKey))
 	router.Post("/feeds",apiCnfg.middlewareAuth(apiCnfg.handlerCreateFeed))
 	router.Get("/feeds",(apiCnfg.handlerGetFeeds))
-	router.Post("/feed-follows",apiCnfg.middlewareAuth(apiCnfg.handlerCreateFeedFollow))
+	router.Get("/feed_follows", apiCnfg.middlewareAuth(apiCnfg.handlerFeedFollowsGet))
+	router.Post("/feed_follows", apiCnfg.middlewareAuth(apiCnfg.handlerCreateFeedFollow))
+	router.Delete("/feed_follows/{feedFollowID}", apiCnfg.middlewareAuth(apiCnfg.handlerFeedFollowDelete))
+
+	router.Get("/posts", apiCnfg.middlewareAuth(apiCnfg.handlerPostsGet))
 	router.Mount("/v1",router )
 	
 	srv:=&http.Server{
 		Handler:router,
 		Addr: ":"+portString,
 	}
+	const collectionConcurrency = 10
+	const collectionInterval = time.Minute
+	go startScraping(dbQueries, collectionConcurrency, collectionInterval)
 	log.Printf("Server starting on port %v",portString)
 	err = srv.ListenAndServe()
 	if err != nil {
